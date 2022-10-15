@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:motor_flutter/motor_flutter.dart';
-import 'package:motor_flutter_starter/pages/dashboard_page.dart';
 
 import 'pages/start_page.dart';
 

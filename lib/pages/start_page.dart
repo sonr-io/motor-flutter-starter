@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:motor_flutter/motor_flutter.dart';
@@ -22,17 +23,18 @@ class StartPage extends StatefulWidget {
 class _StartPageState extends State<StartPage> {
   final box = GetStorage();
   AuthInfo? _authInfo;
+  bool _existingUser = false;
 
-  void _setAuthInfo(AuthInfo? authInfo) {
-    if (authInfo != null) {
-      box.write('authInfo', authInfo.writeToJson());
-      setState(() {
-        _authInfo = authInfo;
-      });
-      Future.delayed(const Duration(milliseconds: 400), () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
-      });
-    }
+  @override
+  void initState() {
+    final value = box.read('authInfo');
+    final existingAuthInfo = value != null ? AuthInfo.fromJson(value) : null;
+    setState(() {
+      _authInfo = existingAuthInfo;
+      _existingUser = _authInfo != null;
+    });
+    _login();
+    super.initState();
   }
 
   @override
@@ -47,45 +49,73 @@ class _StartPageState extends State<StartPage> {
       backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Text(
-              'Motor Starter Demo',
-              style: Theme.of(context).textTheme.headline3,
-            ),
-            ContinueOnSonrButton(
-              onSuccess: (ai) {
-                _setAuthInfo(ai);
-              },
-            ),
-            TextButton(
-                onPressed: () {
-                  final authInfo = box.read('authInfo');
-                  if (authInfo != null) {
-                    _authInfo = AuthInfo.fromJson(authInfo);
-                    MotorFlutter.to.login(
-                      password: _authInfo?.password ?? '',
-                      address: _authInfo?.address ?? '',
-                      dscKey: _authInfo?.aesDscKey,
-                      pskKey: _authInfo?.aesPskKey,
-                    );
-                  } else {
-                    throw Exception('No authInfo found');
-                  }
-                },
-                child: const Text(
-                  'Login',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 17,
+        child: !_existingUser
+            ? Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Text(
+                    'Motor Starter Demo',
+                    style: Theme.of(context).textTheme.headline3,
                   ),
-                ))
-          ],
-        ),
+                  ContinueOnSonrButton(
+                    onSuccess: (ai) => _setAuthInfo(ai),
+                    onError: (e) {
+                      if (kDebugMode) {
+                        print(e);
+                      }
+                    },
+                  ),
+                ],
+              )
+            : Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Logging in as ${_authInfo?.address}...',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                    ),
+                    const CircularProgressIndicator(
+                      color: Colors.blueAccent,
+                    ),
+                  ],
+                ),
+              ),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  _login() async {
+    if (_authInfo == null) {
+      throw Exception('AuthInfo was not found');
+    }
+    await MotorFlutter.to.login(
+      password: _authInfo?.password ?? '',
+      address: _authInfo?.address ?? '',
+      dscKey: _authInfo?.aesDscKey,
+      pskKey: _authInfo?.aesPskKey,
+    );
+
+    Future.delayed(const Duration(milliseconds: 400), () {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
+    });
+  }
+
+  void _setAuthInfo(AuthInfo? authInfo) {
+    if (authInfo != null) {
+      box.write('authInfo', authInfo.writeToJson());
+      setState(() {
+        _authInfo = authInfo;
+      });
+      Future.delayed(const Duration(milliseconds: 400), () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const DashboardPage()));
+      });
+    } else {
+      throw Exception('AuthInfo was not passed to save');
+    }
   }
 }
