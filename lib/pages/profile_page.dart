@@ -43,8 +43,13 @@ class _ProfilePageState extends State<ProfilePage> {
         bottom: PreferredSize(
           preferredSize: _getPreferredSize(),
           child: Container(
+            height: _getPreferredSize().height,
             color: Colors.black12,
-            child: const CircleAvatar(backgroundColor: Colors.white),
+            child: const Center(
+                child: CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Text("snr1"),
+            )),
           ),
         ),
       ),

@@ -37,7 +37,7 @@ extension ActionItemExt on ActionItem {
   String get description {
     switch (this) {
       case ActionItem.schema:
-        return 'Mange your type definitions on the Sonr Blockchain';
+        return 'Manage your type definitions on the Sonr Blockchain';
       case ActionItem.bucket:
         return 'Manage user storage and access for Buckets';
       case ActionItem.document:

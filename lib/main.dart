@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:motor_flutter/motor_flutter.dart';
 import 'package:motor_flutter_starter/pages/dashboard_page.dart';
 
+import 'pages/start_page.dart';
+
 Future<void> main() async {
   await MotorFlutter.init();
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -27,7 +31,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const DashboardPage(),
+      home: const StartPage(),
     );
   }
 }
